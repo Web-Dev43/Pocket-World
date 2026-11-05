@@ -33,7 +33,7 @@
     const scene=new BABYLON.Scene(engine);
     scene.clearColor=new BABYLON.Color4(.57,.79,.98,1);
     const camera=new BABYLON.ArcRotateCamera("followCamera",Math.PI,1.12,10,new BABYLON.Vector3(0,1,0),scene);
-    camera.lowerRadiusLimit=10;camera.upperRadiusLimit=10;camera.lowerBetaLimit=.65;camera.upperBetaLimit=1.75;
+    camera.lowerRadiusLimit=10;camera.upperRadiusLimit=10;camera.lowerBetaLimit=.78;camera.upperBetaLimit=1.42;
     camera.panningSensibility=0;camera.wheelPrecision=0;camera.pinchPrecision=0;camera.inputs.clear();
     scene.activeCamera=camera;
     const hemi=new BABYLON.HemisphericLight("skyLight",new BABYLON.Vector3(0,1,0),scene);hemi.intensity=.9;
@@ -64,7 +64,7 @@
     const resetJoy=()=>{joy={x:0,y:0};stick.style.left="50%";stick.style.top="50%";};
     joyEl.addEventListener("pointerup",resetJoy);joyEl.addEventListener("pointercancel",resetJoy);
     canvas.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse" || e.button===0){if(e.clientX>innerWidth*.42){dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);}}});
-    canvas.addEventListener("pointermove",e=>{if(dragging){const moveX=e.clientX-lastX,moveY=e.clientY-lastY;targetCameraYaw-=moveX*.006;targetCameraBeta=Math.max(.72,Math.min(1.65,targetCameraBeta+moveY*.006));lastX=e.clientX;lastY=e.clientY}});
+    canvas.addEventListener("pointermove",e=>{if(dragging){const moveX=e.clientX-lastX,moveY=e.clientY-lastY;targetCameraYaw-=moveX*.006;targetCameraBeta=Math.max(.78,Math.min(1.42,targetCameraBeta+moveY*.006));lastX=e.clientX;lastY=e.clientY}});
     const stopLook=()=>{dragging=false;};canvas.addEventListener("pointerup",stopLook);canvas.addEventListener("pointercancel",stopLook);
     addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true});addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false});
     let walkTime=0;
