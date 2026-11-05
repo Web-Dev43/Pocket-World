@@ -96,11 +96,12 @@
     let joy={x:0,y:0},keys={},cameraYaw=0,targetCameraYaw=0,cameraBeta=1.12,targetCameraBeta=1.12,dragging=false,lastX=0,lastY=0;
     const cameraFocus=new BABYLON.Vector3(0,1.05,0);
     const joyEl=document.getElementById("joystick"),stick=document.getElementById("stick");
+    let activeJoyPointer=null;
     const setJoy=e=>{const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=42,len=Math.hypot(dx,dy)||1,k=Math.min(1,max/len);joy.x=dx*k/max;joy.y=dy*k/max;stick.style.left=(50+joy.x*34)+"%";stick.style.top=(50+joy.y*34)+"%";};
-    joyEl.addEventListener("pointerdown",e=>{joyEl.setPointerCapture(e.pointerId);setJoy(e)});
-    joyEl.addEventListener("pointermove",e=>{if(e.buttons)setJoy(e)});
-    const resetJoy=()=>{joy={x:0,y:0};stick.style.left="50%";stick.style.top="50%";};
-    joyEl.addEventListener("pointerup",resetJoy);joyEl.addEventListener("pointercancel",resetJoy);
+    joyEl.addEventListener("pointerdown",e=>{if(activeJoyPointer!==null)return;e.preventDefault();activeJoyPointer=e.pointerId;joyEl.setPointerCapture(e.pointerId);setJoy(e)});
+    joyEl.addEventListener("pointermove",e=>{if(e.pointerId===activeJoyPointer){e.preventDefault();setJoy(e)}});
+    const resetJoy=e=>{if(e&&e.pointerId!==undefined&&e.pointerId!==activeJoyPointer)return;activeJoyPointer=null;joy={x:0,y:0};stick.style.left="50%";stick.style.top="50%";};
+    joyEl.addEventListener("pointerup",resetJoy);joyEl.addEventListener("pointercancel",resetJoy);joyEl.addEventListener("lostpointercapture",resetJoy);
     canvas.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse" || e.button===0){if(e.clientX>innerWidth*.42){dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);}}});
     canvas.addEventListener("pointermove",e=>{if(dragging){const moveX=e.clientX-lastX,moveY=e.clientY-lastY;targetCameraYaw-=moveX*.0045;targetCameraBeta=Math.max(.82,Math.min(1.38,targetCameraBeta+moveY*.0045));lastX=e.clientX;lastY=e.clientY}});
     const stopLook=()=>{dragging=false;};canvas.addEventListener("pointerup",stopLook);canvas.addEventListener("pointercancel",stopLook);
