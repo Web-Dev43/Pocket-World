@@ -75,7 +75,10 @@
       const mag=Math.hypot(forward,sideways);if(mag>1){forward/=mag;sideways/=mag;}
       const moving=mag>.05;
       // Smooth camera response; horizontal and vertical gestures stay on separate axes.
-      const cameraEase=1-Math.exp(-12*dt);\n      cameraYaw+=(targetCameraYaw-cameraYaw)*cameraEase;\n      cameraBeta+=(targetCameraBeta-cameraBeta)*cameraEase;\n      const angle=cameraYaw;
+      const cameraEase=1-Math.exp(-12*dt);
+      cameraYaw+=(targetCameraYaw-cameraYaw)*cameraEase;
+      cameraBeta+=(targetCameraBeta-cameraBeta)*cameraEase;
+      const angle=cameraYaw;
       // Movement axes follow the camera's actual horizontal viewing direction.
       const dx=forward*Math.cos(angle)-sideways*Math.sin(angle);
       const dz=forward*Math.sin(angle)+sideways*Math.cos(angle);
