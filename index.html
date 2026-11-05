@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#91c8ff">
+  <title>Pocket World | Movement Prototype</title>
+  <style>
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#91c8ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}
+    #renderCanvas{width:100%;height:100%;display:block;outline:none}
+    #hud{position:fixed;inset:0;pointer-events:none;color:#183047}
+    #title{position:absolute;top:env(safe-area-inset-top,12px);left:14px;margin-top:10px;padding:9px 13px;border-radius:14px;background:#ffffffd9;font-weight:750;box-shadow:0 3px 14px #18304720}
+    #hint{position:absolute;top:62px;left:14px;padding:7px 10px;border-radius:11px;background:#ffffffc9;font-size:12px}
+    #joystick{position:absolute;left:24px;bottom:calc(24px + env(safe-area-inset-bottom));width:126px;height:126px;border:2px solid #ffffffd9;border-radius:50%;background:#17334b30;pointer-events:auto;touch-action:none}
+    #stick{position:absolute;left:50%;top:50%;width:54px;height:54px;transform:translate(-50%,-50%);border-radius:50%;background:#ffffffdf;border:2px solid #42647c;box-shadow:0 3px 10px #0002}
+    #status{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top));padding:8px 11px;border-radius:12px;background:#ffffffd9;font-size:12px}
+    @media(min-width:700px){#joystick{width:112px;height:112px}#stick{width:48px;height:48px}#hint:after{content:" · WASD / arrow keys also work"}}
+  </style>
+</head>
+<body>
+  <canvas id="renderCanvas" aria-label="Pocket World 3D movement test"></canvas>
+  <div id="hud">
+    <div id="title">Pocket World</div>
+    <div id="hint">Drag the right side to look around</div>
+    <div id="status">Movement test · Prototype 1</div>
+    <div id="joystick"><div id="stick"></div></div>
+  </div>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script>
+  (() => {
+    const canvas=document.getElementById("renderCanvas");
+    const engine=new BABYLON.Engine(canvas,true,{preserveDrawingBuffer:false,stencil:true,antialias:true});
+    const scene=new BABYLON.Scene(engine);
+    scene.clearColor=new BABYLON.Color4(.57,.79,.98,1);
+    const camera=new BABYLON.FollowCamera("followCamera",new BABYLON.Vector3(0,5,-9),scene);
+    camera.radius=10;camera.heightOffset=4;camera.rotationOffset=180;camera.cameraAcceleration=.08;camera.maxCameraSpeed=20;camera.lowerRadiusLimit=6;camera.upperRadiusLimit=15;camera.attachControl(canvas,true);
+    scene.activeCamera=camera;
+    const hemi=new BABYLON.HemisphericLight("skyLight",new BABYLON.Vector3(0,1,0),scene);hemi.intensity=.9;
+    const sun=new BABYLON.DirectionalLight("sun",new BABYLON.Vector3(-.4,-1,.3),scene);sun.position=new BABYLON.Vector3(8,14,-6);sun.intensity=.65;
+    const mat=(name,color)=>{const m=new BABYLON.StandardMaterial(name,scene);m.diffuseColor=BABYLON.Color3.FromHexString(color);return m};
+    const grass=mat("grass","#65b96b"),edge=mat("edge","#b9d6a0"),skin=mat("playerSkin","#e9b88e"),shirt=mat("playerShirt","#397bb8"),pants=mat("playerPants","#34465d"),white=mat("eyes","#ffffff"),dark=mat("pupils","#253344");
+    const platform=BABYLON.MeshBuilder.CreateBox("platform",{width:28,depth:28,height:1},scene);platform.position.y=-.55;platform.material=grass;
+    const trim=BABYLON.MeshBuilder.CreateBox("platformEdge",{width:28.5,depth:28.5,height:.35},scene);trim.position.y=-1.18;trim.material=edge;
+    const ground=BABYLON.MeshBuilder.CreateGround("ground",{width:300,height:300},scene);ground.position.y=-1.38;ground.material=mat("outside","#8dbb82");
+    const player=new BABYLON.TransformNode("player",scene);
+    const body=BABYLON.MeshBuilder.CreateCapsule("body",{height:1.45,radius:.38},scene);body.parent=player;body.position.y=.95;body.material=shirt;
+    const head=BABYLON.MeshBuilder.CreateSphere("head",{diameter:.72,segments:16},scene);head.parent=player;head.position.y=1.95;head.material=skin;
+    const eye1=BABYLON.MeshBuilder.CreateSphere("eye1",{diameter:.09},scene);eye1.parent=player;eye1.position.set(-.14,2,.31);eye1.material=white;
+    const eye2=eye1.clone("eye2");eye2.parent=player;eye2.position.x=.14;
+    const pupil1=BABYLON.MeshBuilder.CreateSphere("pupil1",{diameter:.045},scene);pupil1.parent=player;pupil1.position.set(-.14,2,.36);pupil1.material=dark;
+    const pupil2=pupil1.clone("pupil2");pupil2.parent=player;pupil2.position.x=.14;
+    const leg1=BABYLON.MeshBuilder.CreateBox("leg1",{width:.23,height:.65,depth:.25},scene);leg1.parent=player;leg1.position.set(-.2,.33,0);leg1.material=pants;
+    const leg2=leg1.clone("leg2");leg2.parent=player;leg2.position.x=.2;
+    player.position.set(0,0,0);camera.lockedTarget=player;
+    // A few simple props make the platform edges and scale easier to judge.
+    const treeMat=mat("tree","#347d49"),trunkMat=mat("trunk","#805333");
+    for(const [x,z] of [[-9,-8],[9,-8],[-9,8],[9,8]]){const trunk=BABYLON.MeshBuilder.CreateCylinder("treeTrunk",{height:1.5,diameter:.45},scene);trunk.position.set(x,.35,z);trunk.material=trunkMat;const crown=BABYLON.MeshBuilder.CreateSphere("treeCrown",{diameter:2.2,segments:12},scene);crown.position.set(x,1.65,z);crown.material=treeMat;}
+    let joy={x:0,y:0},keys={},cameraYaw=0,dragging=false,lastX=0;
+    const joyEl=document.getElementById("joystick"),stick=document.getElementById("stick");
+    const setJoy=e=>{const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=42,len=Math.hypot(dx,dy)||1,k=Math.min(1,max/len);joy.x=dx*k/max;joy.y=dy*k/max;stick.style.left=(50+joy.x*34)+"%";stick.style.top=(50+joy.y*34)+"%";};
+    joyEl.addEventListener("pointerdown",e=>{joyEl.setPointerCapture(e.pointerId);setJoy(e)});
+    joyEl.addEventListener("pointermove",e=>{if(e.buttons)setJoy(e)});
+    const resetJoy=()=>{joy={x:0,y:0};stick.style.left="50%";stick.style.top="50%";};
+    joyEl.addEventListener("pointerup",resetJoy);joyEl.addEventListener("pointercancel",resetJoy);
+    canvas.addEventListener("pointerdown",e=>{if(e.clientX>innerWidth*.42){dragging=true;lastX=e.clientX}});
+    canvas.addEventListener("pointermove",e=>{if(dragging){cameraYaw+=(e.clientX-lastX)*.008;lastX=e.clientX}});
+    canvas.addEventListener("pointerup",()=>dragging=false);canvas.addEventListener("pointercancel",()=>dragging=false);
+    addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true});addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false});
+    let walkTime=0;
+    scene.onBeforeRenderObservable.add(()=>{
+      const dt=Math.min(engine.getDeltaTime()/1000,.05);
+      let forward= -joy.y + (keys.w||keys.arrowup?1:0) - (keys.s||keys.arrowdown?1:0);
+      let sideways= joy.x + (keys.d||keys.arrowright?1:0) - (keys.a||keys.arrowleft?1:0);
+      const mag=Math.hypot(forward,sideways);if(mag>1){forward/=mag;sideways/=mag;}
+      const moving=mag>.05;
+      const angle=cameraYaw;
+      const dx=sideways*Math.cos(angle)+forward*Math.sin(angle);
+      const dz=-sideways*Math.sin(angle)+forward*Math.cos(angle);
+      const speed=5.2;
+      player.position.x=Math.max(-12.6,Math.min(12.6,player.position.x+dx*speed*dt));
+      player.position.z=Math.max(-12.6,Math.min(12.6,player.position.z+dz*speed*dt));
+      if(moving){player.rotation.y=Math.atan2(dx,dz);walkTime+=dt*10;leg1.rotation.x=Math.sin(walkTime)*.55;leg2.rotation.x=-Math.sin(walkTime)*.55;}
+      else{leg1.rotation.x=0;leg2.rotation.x=0;}
+      camera.rotationOffset=180-cameraYaw*180/Math.PI;
+    });
+    engine.runRenderLoop(()=>scene.render());
+    addEventListener("resize",()=>engine.resize());
+    document.addEventListener("visibilitychange",()=>{if(document.hidden)resetJoy()});
+  })();
+  </script>
+</body>
+</html>
