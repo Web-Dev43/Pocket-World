@@ -33,7 +33,7 @@
     const scene=new BABYLON.Scene(engine);
     scene.clearColor=new BABYLON.Color4(.57,.79,.98,1);
     const camera=new BABYLON.ArcRotateCamera("followCamera",Math.PI,1.12,10,new BABYLON.Vector3(0,1,0),scene);
-    camera.lowerRadiusLimit=10;camera.upperRadiusLimit=10;camera.lowerBetaLimit=1.12;camera.upperBetaLimit=1.12;
+    camera.lowerRadiusLimit=10;camera.upperRadiusLimit=10;camera.lowerBetaLimit=.65;camera.upperBetaLimit=1.75;
     camera.panningSensibility=0;camera.wheelPrecision=0;camera.pinchPrecision=0;camera.inputs.clear();
     scene.activeCamera=camera;
     const hemi=new BABYLON.HemisphericLight("skyLight",new BABYLON.Vector3(0,1,0),scene);hemi.intensity=.9;
@@ -56,15 +56,15 @@
     // A few simple props make the platform edges and scale easier to judge.
     const treeMat=mat("tree","#347d49"),trunkMat=mat("trunk","#805333");
     for(const [x,z] of [[-9,-8],[9,-8],[-9,8],[9,8]]){const trunk=BABYLON.MeshBuilder.CreateCylinder("treeTrunk",{height:1.5,diameter:.45},scene);trunk.position.set(x,.35,z);trunk.material=trunkMat;const crown=BABYLON.MeshBuilder.CreateSphere("treeCrown",{diameter:2.2,segments:12},scene);crown.position.set(x,1.65,z);crown.material=treeMat;}
-    let joy={x:0,y:0},keys={},cameraYaw=0,dragging=false,lastX=0;
+    let joy={x:0,y:0},keys={},cameraYaw=0,cameraBeta=1.12,dragging=false,lastX=0,lastY=0;
     const joyEl=document.getElementById("joystick"),stick=document.getElementById("stick");
     const setJoy=e=>{const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=42,len=Math.hypot(dx,dy)||1,k=Math.min(1,max/len);joy.x=dx*k/max;joy.y=dy*k/max;stick.style.left=(50+joy.x*34)+"%";stick.style.top=(50+joy.y*34)+"%";};
     joyEl.addEventListener("pointerdown",e=>{joyEl.setPointerCapture(e.pointerId);setJoy(e)});
     joyEl.addEventListener("pointermove",e=>{if(e.buttons)setJoy(e)});
     const resetJoy=()=>{joy={x:0,y:0};stick.style.left="50%";stick.style.top="50%";};
     joyEl.addEventListener("pointerup",resetJoy);joyEl.addEventListener("pointercancel",resetJoy);
-    canvas.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse" || e.button===0){if(e.clientX>innerWidth*.42){dragging=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId);}}});
-    canvas.addEventListener("pointermove",e=>{if(dragging){cameraYaw-=(e.clientX-lastX)*.008;lastX=e.clientX}});
+    canvas.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse" || e.button===0){if(e.clientX>innerWidth*.42){dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);}}});
+    canvas.addEventListener("pointermove",e=>{if(dragging){cameraYaw-=(e.clientX-lastX)*.008;cameraBeta+=(e.clientY-lastY)*.008;cameraBeta=Math.max(.65,Math.min(1.75,cameraBeta));lastX=e.clientX;lastY=e.clientY}});
     const stopLook=()=>{dragging=false;};canvas.addEventListener("pointerup",stopLook);canvas.addEventListener("pointercancel",stopLook);
     addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true});addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false});
     let walkTime=0;
@@ -84,6 +84,7 @@
       if(moving){player.rotation.y=Math.atan2(dx,dz);walkTime+=dt*10;leg1.rotation.x=Math.sin(walkTime)*.55;leg2.rotation.x=-Math.sin(walkTime)*.55;}
       else{leg1.rotation.x=0;leg2.rotation.x=0;}
       camera.alpha=Math.PI+cameraYaw;
+      camera.beta=cameraBeta;
       camera.target.set(player.position.x,player.position.y+1.05,player.position.z);
     });
     engine.runRenderLoop(()=>scene.render());
