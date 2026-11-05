@@ -69,7 +69,7 @@
     const engine=new BABYLON.Engine(canvas,true,{preserveDrawingBuffer:false,stencil:true,antialias:true});
     const scene=new BABYLON.Scene(engine);
     scene.clearColor=new BABYLON.Color4(.57,.79,.98,1);
-    const camera=new BABYLON.ArcRotateCamera("followCamera",Math.PI,1.12,10,new BABYLON.Vector3(0,1,0),scene);
+    const camera=new BABYLON.ArcRotateCamera("followCamera",Math.PI*1.5,1.12,10,new BABYLON.Vector3(0,1,0),scene);
     camera.lowerRadiusLimit=10;camera.upperRadiusLimit=10;camera.lowerBetaLimit=.78;camera.upperBetaLimit=1.42;
     camera.panningSensibility=0;camera.wheelPrecision=0;camera.pinchPrecision=0;camera.inputs.clear();
     scene.activeCamera=camera;
@@ -118,14 +118,14 @@
       cameraBeta+=(targetCameraBeta-cameraBeta)*cameraEase;
       const angle=cameraYaw;
       // Movement axes follow the camera's actual horizontal viewing direction.
-      const dx=forward*Math.cos(angle)-sideways*Math.sin(angle);
-      const dz=forward*Math.sin(angle)+sideways*Math.cos(angle);
+      const dx=-forward*Math.sin(angle)+sideways*Math.cos(angle);
+      const dz=forward*Math.cos(angle)+sideways*Math.sin(angle);
       const speed=5.2;
       player.position.x=Math.max(-12.6,Math.min(12.6,player.position.x+dx*speed*dt));
       player.position.z=Math.max(-12.6,Math.min(12.6,player.position.z+dz*speed*dt));
       if(moving){player.rotation.y=Math.atan2(dx,dz);walkTime+=dt*10;leg1.rotation.x=Math.sin(walkTime)*.55;leg2.rotation.x=-Math.sin(walkTime)*.55;}
       else{leg1.rotation.x=0;leg2.rotation.x=0;}
-      camera.alpha=Math.PI+cameraYaw;
+      camera.alpha=Math.PI*1.5+cameraYaw;
       camera.beta=cameraBeta;
       // Roblox-style follow: orbit smoothly around a softly-following focus point.
       const followEase=1-Math.exp(-10*dt);
