@@ -127,7 +127,7 @@
       camera.alpha=Math.PI*1.5+cameraYaw;
       camera.beta=cameraBeta;
       // Roblox-style follow: orbit smoothly around a softly-following focus point.
-      const followEase=1-Math.exp(-18*dt);
+      const followEase=1-Math.exp(-30*dt);
       cameraFocus.x+=(player.position.x-cameraFocus.x)*followEase;
       cameraFocus.y+=(player.position.y+1.05-cameraFocus.y)*followEase;
       cameraFocus.z+=(player.position.z-cameraFocus.z)*followEase;
