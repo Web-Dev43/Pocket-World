@@ -52,7 +52,8 @@
         if (event.target && event.target !== window) {
           showGameError("A game resource failed to load: " + (event.target.src || event.target.href || event.target.tagName));
         } else {
-          showGameError((event.message || "JavaScript error") + (event.filename ? "\\n" + event.filename + ":" + event.lineno + ":" + event.colno : ""));
+          showGameError((event.message || "JavaScript error") + (event.filename ? "\
+" + event.filename + ":" + event.lineno + ":" + event.colno : ""));
         }
       }, true);
       window.addEventListener("unhandledrejection", event => {
@@ -92,7 +93,8 @@
     // A few simple props make the platform edges and scale easier to judge.
     const treeMat=mat("tree","#347d49"),trunkMat=mat("trunk","#805333");
     for(const [x,z] of [[-9,-8],[9,-8],[-9,8],[9,8]]){const trunk=BABYLON.MeshBuilder.CreateCylinder("treeTrunk",{height:1.5,diameter:.45},scene);trunk.position.set(x,.35,z);trunk.material=trunkMat;const crown=BABYLON.MeshBuilder.CreateSphere("treeCrown",{diameter:2.2,segments:12},scene);crown.position.set(x,1.65,z);crown.material=treeMat;}
-    let joy={x:0,y:0},keys={},cameraYaw=0,targetCameraYaw=0,cameraBeta=1.12,targetCameraBeta=1.12,dragging=false,lastX=0,lastY=0;\n    const cameraFocus=new BABYLON.Vector3(0,1.05,0);
+    let joy={x:0,y:0},keys={},cameraYaw=0,targetCameraYaw=0,cameraBeta=1.12,targetCameraBeta=1.12,dragging=false,lastX=0,lastY=0;
+    const cameraFocus=new BABYLON.Vector3(0,1.05,0);
     const joyEl=document.getElementById("joystick"),stick=document.getElementById("stick");
     const setJoy=e=>{const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=42,len=Math.hypot(dx,dy)||1,k=Math.min(1,max/len);joy.x=dx*k/max;joy.y=dy*k/max;stick.style.left=(50+joy.x*34)+"%";stick.style.top=(50+joy.y*34)+"%";};
     joyEl.addEventListener("pointerdown",e=>{joyEl.setPointerCapture(e.pointerId);setJoy(e)});
@@ -125,7 +127,12 @@
       else{leg1.rotation.x=0;leg2.rotation.x=0;}
       camera.alpha=Math.PI+cameraYaw;
       camera.beta=cameraBeta;
-      // Roblox-style follow: orbit smoothly around a softly-following focus point.\n      const followEase=1-Math.exp(-10*dt);\n      cameraFocus.x+=(player.position.x-cameraFocus.x)*followEase;\n      cameraFocus.y+=(player.position.y+1.05-cameraFocus.y)*followEase;\n      cameraFocus.z+=(player.position.z-cameraFocus.z)*followEase;\n      camera.target.copyFrom(cameraFocus);
+      // Roblox-style follow: orbit smoothly around a softly-following focus point.
+      const followEase=1-Math.exp(-10*dt);
+      cameraFocus.x+=(player.position.x-cameraFocus.x)*followEase;
+      cameraFocus.y+=(player.position.y+1.05-cameraFocus.y)*followEase;
+      cameraFocus.z+=(player.position.z-cameraFocus.z)*followEase;
+      camera.target.copyFrom(cameraFocus);
     });
     engine.runRenderLoop(()=>scene.render());
     addEventListener("resize",()=>engine.resize());
