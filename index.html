@@ -56,7 +56,7 @@
     // A few simple props make the platform edges and scale easier to judge.
     const treeMat=mat("tree","#347d49"),trunkMat=mat("trunk","#805333");
     for(const [x,z] of [[-9,-8],[9,-8],[-9,8],[9,8]]){const trunk=BABYLON.MeshBuilder.CreateCylinder("treeTrunk",{height:1.5,diameter:.45},scene);trunk.position.set(x,.35,z);trunk.material=trunkMat;const crown=BABYLON.MeshBuilder.CreateSphere("treeCrown",{diameter:2.2,segments:12},scene);crown.position.set(x,1.65,z);crown.material=treeMat;}
-    let joy={x:0,y:0},keys={},cameraYaw=0,cameraBeta=1.12,dragging=false,lastX=0,lastY=0;
+    let joy={x:0,y:0},keys={},cameraYaw=0,targetCameraYaw=0,cameraBeta=1.12,targetCameraBeta=1.12,dragging=false,lastX=0,lastY=0;
     const joyEl=document.getElementById("joystick"),stick=document.getElementById("stick");
     const setJoy=e=>{const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=42,len=Math.hypot(dx,dy)||1,k=Math.min(1,max/len);joy.x=dx*k/max;joy.y=dy*k/max;stick.style.left=(50+joy.x*34)+"%";stick.style.top=(50+joy.y*34)+"%";};
     joyEl.addEventListener("pointerdown",e=>{joyEl.setPointerCapture(e.pointerId);setJoy(e)});
@@ -64,7 +64,7 @@
     const resetJoy=()=>{joy={x:0,y:0};stick.style.left="50%";stick.style.top="50%";};
     joyEl.addEventListener("pointerup",resetJoy);joyEl.addEventListener("pointercancel",resetJoy);
     canvas.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse" || e.button===0){if(e.clientX>innerWidth*.42){dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);}}});
-    canvas.addEventListener("pointermove",e=>{if(dragging){cameraYaw-=(e.clientX-lastX)*.008;cameraBeta+=(e.clientY-lastY)*.008;cameraBeta=Math.max(.65,Math.min(1.75,cameraBeta));lastX=e.clientX;lastY=e.clientY}});
+    canvas.addEventListener("pointermove",e=>{if(dragging){const moveX=e.clientX-lastX,moveY=e.clientY-lastY;targetCameraYaw-=moveX*.006;targetCameraBeta=Math.max(.72,Math.min(1.65,targetCameraBeta+moveY*.006));lastX=e.clientX;lastY=e.clientY}});
     const stopLook=()=>{dragging=false;};canvas.addEventListener("pointerup",stopLook);canvas.addEventListener("pointercancel",stopLook);
     addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true});addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false});
     let walkTime=0;
@@ -74,7 +74,7 @@
       let sideways= joy.x + (keys.d||keys.arrowright?1:0) - (keys.a||keys.arrowleft?1:0);
       const mag=Math.hypot(forward,sideways);if(mag>1){forward/=mag;sideways/=mag;}
       const moving=mag>.05;
-      const angle=cameraYaw;
+      // Smooth camera response; horizontal and vertical gestures stay on separate axes.\n      const cameraEase=1-Math.exp(-12*dt);\n      cameraYaw+=(targetCameraYaw-cameraYaw)*cameraEase;\n      cameraBeta+=(targetCameraBeta-cameraBeta)*cameraEase;\n      const angle=cameraYaw;
       // Movement axes follow the camera's actual horizontal viewing direction.
       const dx=forward*Math.cos(angle)-sideways*Math.sin(angle);
       const dz=forward*Math.sin(angle)+sideways*Math.cos(angle);
