@@ -14,6 +14,12 @@
     #joystick{position:absolute;left:24px;bottom:calc(24px + env(safe-area-inset-bottom));width:126px;height:126px;border:2px solid #ffffffd9;border-radius:50%;background:#17334b30;pointer-events:auto;touch-action:none}
     #stick{position:absolute;left:50%;top:50%;width:54px;height:54px;transform:translate(-50%,-50%);border-radius:50%;background:#ffffffdf;border:2px solid #42647c;box-shadow:0 3px 10px #0002}
     #status{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top));padding:8px 11px;border-radius:12px;background:#ffffffd9;font-size:12px}
+    #errorOverlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:24px;background:#102235d9;color:#172b3d;pointer-events:auto}
+    #errorCard{width:min(100%,440px);max-height:85vh;overflow:auto;padding:22px;border-radius:20px;background:#fff;box-shadow:0 18px 60px #0005}
+    #errorCard h2{margin:0 0 8px;font-size:22px}
+    #errorCard p{margin:0 0 14px;line-height:1.45;color:#536477}
+    #errorDetails{padding:12px;border-radius:10px;background:#f1f4f7;color:#26384a;font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto}
+    #errorReload{width:100%;margin-top:16px;padding:13px;border:0;border-radius:12px;background:#2869c7;color:white;font:600 15px system-ui;cursor:pointer}
     @media(min-width:700px){#joystick{width:112px;height:112px}#stick{width:48px;height:48px}#hint:after{content:" · WASD / arrow keys also work"}}
   </style>
 </head>
@@ -25,6 +31,36 @@
     <div id="status">Movement test · Prototype 1</div>
     <div id="joystick"><div id="stick"></div></div>
   </div>
+  <div id="errorOverlay" role="alertdialog" aria-modal="true" aria-labelledby="errorTitle">
+    <div id="errorCard">
+      <h2 id="errorTitle">Pocket World hit an error</h2>
+      <p>The game could not start correctly. The details below can help us find the problem.</p>
+      <div id="errorDetails">Waiting for error details…</div>
+      <button id="errorReload" type="button" onclick="location.reload()">Reload game</button>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const showGameError = message => {
+        const overlay = document.getElementById("errorOverlay");
+        const details = document.getElementById("errorDetails");
+        if (!overlay || !details) return;
+        details.textContent = String(message || "Unknown error").slice(0, 1800);
+        overlay.style.display = "flex";
+      };
+      window.addEventListener("error", event => {
+        if (event.target && event.target !== window) {
+          showGameError("A game resource failed to load: " + (event.target.src || event.target.href || event.target.tagName));
+        } else {
+          showGameError((event.message || "JavaScript error") + (event.filename ? "\\n" + event.filename + ":" + event.lineno + ":" + event.colno : ""));
+        }
+      }, true);
+      window.addEventListener("unhandledrejection", event => {
+        const reason = event.reason;
+        showGameError("Unhandled promise error: " + (reason && reason.stack ? reason.stack : reason));
+      });
+    })();
+  </script>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script>
   (() => {
