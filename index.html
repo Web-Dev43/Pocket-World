@@ -75,8 +75,9 @@
       const mag=Math.hypot(forward,sideways);if(mag>1){forward/=mag;sideways/=mag;}
       const moving=mag>.05;
       const angle=cameraYaw;
-      const dx=sideways*Math.cos(angle)+forward*Math.sin(angle);
-      const dz=-sideways*Math.sin(angle)+forward*Math.cos(angle);
+      // Movement axes follow the camera's actual horizontal viewing direction.
+      const dx=forward*Math.cos(angle)-sideways*Math.sin(angle);
+      const dz=forward*Math.sin(angle)+sideways*Math.cos(angle);
       const speed=5.2;
       player.position.x=Math.max(-12.6,Math.min(12.6,player.position.x+dx*speed*dt));
       player.position.z=Math.max(-12.6,Math.min(12.6,player.position.z+dz*speed*dt));
