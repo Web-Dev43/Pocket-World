@@ -112,10 +112,9 @@
       let sideways= joy.x + (keys.d||keys.arrowright?1:0) - (keys.a||keys.arrowleft?1:0);
       const mag=Math.hypot(forward,sideways);if(mag>1){forward/=mag;sideways/=mag;}
       const moving=mag>.05;
-      // Smooth camera response; horizontal and vertical gestures stay on separate axes.
-      const cameraEase=1-Math.exp(-12*dt);
-      cameraYaw+=(targetCameraYaw-cameraYaw)*cameraEase;
-      cameraBeta+=(targetCameraBeta-cameraBeta)*cameraEase;
+      // Direct orbit input avoids the elastic, jelly-like lag while turning.
+      cameraYaw=targetCameraYaw;
+      cameraBeta=targetCameraBeta;
       const angle=cameraYaw;
       // Movement axes follow the camera's actual horizontal viewing direction.
       const dx=-forward*Math.sin(angle)+sideways*Math.cos(angle);
@@ -128,7 +127,7 @@
       camera.alpha=Math.PI*1.5+cameraYaw;
       camera.beta=cameraBeta;
       // Roblox-style follow: orbit smoothly around a softly-following focus point.
-      const followEase=1-Math.exp(-10*dt);
+      const followEase=1-Math.exp(-18*dt);
       cameraFocus.x+=(player.position.x-cameraFocus.x)*followEase;
       cameraFocus.y+=(player.position.y+1.05-cameraFocus.y)*followEase;
       cameraFocus.z+=(player.position.z-cameraFocus.z)*followEase;
